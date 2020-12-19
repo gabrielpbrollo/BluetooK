@@ -11,7 +11,7 @@ class ServerStateManager {
 
     fun getCurrentState() = state
 
-    fun isStarted() = state == BluetooKServer.ServerState.STARTED
+    fun isAccepting() = state == BluetooKServer.ServerState.ACCEPTING
 
     fun setStarted() {
         state = BluetooKServer.ServerState.STARTED
@@ -20,6 +20,11 @@ class ServerStateManager {
 
     fun setStopped() {
         state = BluetooKServer.ServerState.STOPPED
+        onStateChanged?.invoke(state)
+    }
+
+    fun setAccepting() {
+        state = BluetooKServer.ServerState.ACCEPTING
         onStateChanged?.invoke(state)
     }
 }

@@ -1,7 +1,7 @@
 package br.com.bluetook.contract
 
 import android.Manifest
-import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothSocket
 import androidx.annotation.RequiresPermission
 import br.com.bluetook.implementation.server.DefaultBluetooKServerImpl
 import kotlinx.coroutines.flow.Flow
@@ -19,17 +19,16 @@ interface BluetooKServer {
 
     fun stop()
 
-    fun receiveData(): Flow<ServerData>
+    fun clientAccepted(): Flow<BluetoothSocket>
 
     fun getState(): Flow<ServerState>
 
     fun getCurrentState(): ServerState
 
-    data class ServerData(val client: BluetoothDevice, val data: Byte)
-
     enum class ServerState {
         RAW,
         STARTED,
+        ACCEPTING,
         STOPPED
     }
 }
