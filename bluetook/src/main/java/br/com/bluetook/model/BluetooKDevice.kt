@@ -1,9 +1,10 @@
 package br.com.bluetook.model
 
-import br.com.bluetook.contract.IBluetooKDevice
+import br.com.bluetook.contract.BluetooKDevice
 import java.lang.Exception
 
-class BluetooKDevice private constructor(builder: Builder): IBluetooKDevice {
+class BluetooKDevice private constructor(builder: Builder):
+    BluetooKDevice {
 
     override fun isPaired(): Boolean {
         TODO("Not yet implemented")
