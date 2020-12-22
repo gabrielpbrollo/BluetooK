@@ -36,15 +36,9 @@ class DefaultBluetooKServerImpl : BluetooKServer {
         requireBluetoothEnabled()
 
         try {
-            serverSocket = if (/*TODO need? isAndroid*/false) {
-                bluetoothAdapter.listenUsingRfcommWithServiceRecord(
-                    NAME_SECURE, UUIDHelper.UUID_ANDROID_DEVICE
-                )
-            } else {
-                bluetoothAdapter.listenUsingRfcommWithServiceRecord(
-                    NAME_SECURE, UUIDHelper.UUID_OTHER_DEVICE
-                )
-            }
+            serverSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord(
+                NAME_SECURE, UUIDHelper.DEFAULT_UUID_DEVICE
+            )
 
             state.setStarted()
         } catch (e: IOException) {

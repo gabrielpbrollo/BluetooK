@@ -2,15 +2,21 @@ package br.com.bluetook.contract
 
 import android.Manifest
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothSocket
 import androidx.annotation.RequiresPermission
 import br.com.bluetook.implementation.client.DefaultBluetootKClientImpl
 import kotlinx.coroutines.flow.Flow
+import java.util.*
 
 interface BluetooKClient {
 
     companion object {
-        fun create(device: BluetoothDevice, isAndroid: Boolean): BluetooKClient {
-            return DefaultBluetootKClientImpl(device, isAndroid)
+        fun create(device: BluetoothDevice, uuid: UUID): BluetooKClient {
+            return DefaultBluetootKClientImpl.new(device, uuid)
+        }
+
+        fun withAcceptedClient(acceptedBluetoothSocket: BluetoothSocket): BluetooKClient {
+            return DefaultBluetootKClientImpl.withAcceptedClient(acceptedBluetoothSocket)
         }
     }
 

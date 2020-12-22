@@ -2,10 +2,12 @@ package br.com.bluetook.implementation.client
 
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
+import android.util.Log
 import br.com.bluetook.contract.BluetooKClient
 import br.com.bluetook.contract.BluetooKClient.ClientState
 import br.com.bluetook.contract.exception.BluetooKDeviceIsNotConnected
 import br.com.bluetook.contract.exception.BluetoothIsNotEnabled
+import br.com.bluetook.extension.getUUID
 import br.com.bluetook.extension.safeClose
 import br.com.bluetook.helper.BluetooKHelper
 import kotlinx.coroutines.channels.awaitClose
@@ -17,18 +19,34 @@ import java.io.OutputStream
 import java.nio.charset.StandardCharsets
 import java.util.*
 
-
-class DefaultBluetootKClientImpl(
+class DefaultBluetootKClientImpl private constructor(
     private val device: BluetoothDevice,
-    private val isAndroid: Boolean
+    private val uuid: UUID
 ) : BluetooKClient {
 
     companion object {
-        private val UUID_ANDROID_DEVICE: UUID =
-            UUID.fromString("fa87c0d0-afac-11de-8a39-0800200c9a66")
-        private val UUID_OTHER_DEVICE: UUID =
-            UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
+        fun new(device: BluetoothDevice, uuid: UUID): DefaultBluetootKClientImpl {
+            return DefaultBluetootKClientImpl(device, uuid)
+        }
+
+        fun withAcceptedClient(clientSocket: BluetoothSocket): DefaultBluetootKClientImpl {
+            return DefaultBluetootKClientImpl(
+                clientSocket.remoteDevice,
+                clientSocket.getUUID()
+            ).apply {
+                setAcceptedConnection(clientSocket)
+            }
+        }
     }
+
+    private fun setAcceptedConnection(clientSocket: BluetoothSocket) {
+        this.socket = clientSocket
+        this.inStream = clientSocket.inputStream
+        this.outStream = clientSocket.outputStream
+        this.state.setConnected()
+    }
+
+    private val TAG = "DefaultBluetootKClientImpl"
 
     private lateinit var socket: BluetoothSocket
     private lateinit var inStream: InputStream
@@ -36,15 +54,15 @@ class DefaultBluetootKClientImpl(
 
     private val state = ClientStateManager()
 
-
     override suspend fun connect() {
         requireBluetoothEnabled()
 
-        this.socket = if (isAndroid) {
-            device.createRfcommSocketToServiceRecord(UUID_ANDROID_DEVICE)
-        } else {
-            device.createRfcommSocketToServiceRecord(UUID_OTHER_DEVICE)
+        if (state.isConnected()) {
+            Log.d(TAG, "connect: Already connected")
+            return
         }
+
+        this.socket = device.createRfcommSocketToServiceRecord(uuid)
 
         try {
             socket.connect()
@@ -59,9 +77,12 @@ class DefaultBluetootKClientImpl(
     }
 
     override fun disconnect() {
-        socket.safeClose()
-        inStream.safeClose()
-        outStream.safeClose()
+        if (this::socket.isInitialized) {
+            //making sure it can be closed
+            socket.safeClose()
+            inStream.safeClose()
+            outStream.safeClose()
+        }
 
         state.setDisconnected()
     }
@@ -73,7 +94,12 @@ class DefaultBluetootKClientImpl(
     override suspend fun sendBytes(data: ByteArray) {
         requireConnected()
 
-        outStream.write(data)
+        try {
+            outStream.write(data)
+        } catch (ex: Exception) {
+            Log.e(TAG, "sendBytes: ${ex.message}")
+            disconnect()
+        }
     }
 
     override fun receiveData(): Flow<Byte> {
@@ -85,7 +111,7 @@ class DefaultBluetootKClientImpl(
                     emit(inStream.read().toByte())
                 }
             } catch (ex: Exception) {
-                ex.printStackTrace()
+                disconnect()
             }
         }
     }

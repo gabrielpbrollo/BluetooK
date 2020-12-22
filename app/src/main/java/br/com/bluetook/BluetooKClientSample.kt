@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import br.com.bluetook.contract.BluetooKClient
 import br.com.bluetook.helper.BluetooKHelper
+import br.com.bluetook.implementation.UUIDHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -48,7 +49,7 @@ class BluetooKClientSample : AppCompatActivity() {
         val targetName = etTargetName.text.toString()
 
         try {
-            client = BluetooKClient.create(getBluetoothDeviceBy(targetName), false)
+            client = BluetooKClient.create(getBluetoothDeviceBy(targetName), UUIDHelper.DEFAULT_UUID_DEVICE)
 
             lifecycleScope.launch(Dispatchers.IO) {
                 client?.connect()

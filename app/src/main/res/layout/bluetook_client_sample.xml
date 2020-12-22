@@ -42,6 +42,7 @@
         android:id="@+id/etEmittingValue"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:text="Data to Send"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/svReceivedData" />

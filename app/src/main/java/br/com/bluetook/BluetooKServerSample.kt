@@ -5,15 +5,17 @@ import android.os.Bundle
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import br.com.bluetook.contract.BluetooKClient
 import br.com.bluetook.contract.BluetooKServer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import java.io.IOException
 
 class BluetooKServerSample : AppCompatActivity() {
 
     private lateinit var server: BluetooKServer
+
+    private var acceptedClient: BluetooKClient? = null
 
     //View
     private val tvReceivedData: TextView by lazy { findViewById(R.id.tvReceivedData) }
@@ -44,14 +46,14 @@ class BluetooKServerSample : AppCompatActivity() {
         }
     }
 
-    private fun receiveDataFromClient(client: BluetoothSocket) {
+    private fun receiveDataFromClient(clientSocket: BluetoothSocket) {
+        acceptedClient = BluetooKClient.withAcceptedClient(clientSocket)
+
         lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                while (client.isConnected) {
-                    appendInformation("Received ${client.inputStream.read()}")
-                }
-            } catch (ex: IOException) {
-                appendInformation("Client Disconnected ${client.remoteDevice.name}")
+            acceptedClient?.sendString("Successfully connected with BluetooKServer")
+
+            acceptedClient?.receiveData()?.collect {
+                appendInformation("Received ${it.toChar()}")
             }
         }
     }
@@ -65,7 +67,7 @@ class BluetooKServerSample : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-
+        acceptedClient?.disconnect()
         server.stop()
     }
 }
