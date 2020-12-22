@@ -5,7 +5,9 @@ import android.bluetooth.BluetoothServerSocket
 import android.bluetooth.BluetoothSocket
 import br.com.bluetook.contract.BluetooKServer
 import br.com.bluetook.contract.BluetooKServer.ServerState
+import br.com.bluetook.contract.exception.BluetoothIsNotEnabled
 import br.com.bluetook.extension.safeClose
+import br.com.bluetook.helper.BluetooKHelper
 import br.com.bluetook.implementation.UUIDHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,6 +33,8 @@ class DefaultBluetooKServerImpl : BluetooKServer {
     private val state = ServerStateManager()
 
     override fun start() {
+        requireBluetoothEnabled()
+
         try {
             serverSocket = if (/*TODO need? isAndroid*/false) {
                 bluetoothAdapter.listenUsingRfcommWithServiceRecord(
@@ -45,6 +49,12 @@ class DefaultBluetooKServerImpl : BluetooKServer {
             state.setStarted()
         } catch (e: IOException) {
             stop()
+        }
+    }
+
+    private fun requireBluetoothEnabled() {
+        if (!BluetooKHelper().bluetoothAvailable()) {
+            throw BluetoothIsNotEnabled
         }
     }
 

@@ -5,7 +5,9 @@ import android.bluetooth.BluetoothSocket
 import br.com.bluetook.contract.BluetooKClient
 import br.com.bluetook.contract.BluetooKClient.ClientState
 import br.com.bluetook.contract.exception.BluetooKDeviceIsNotConnected
+import br.com.bluetook.contract.exception.BluetoothIsNotEnabled
 import br.com.bluetook.extension.safeClose
+import br.com.bluetook.helper.BluetooKHelper
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -36,6 +38,7 @@ class DefaultBluetootKClientImpl(
 
 
     override suspend fun connect() {
+        requireBluetoothEnabled()
 
         this.socket = if (isAndroid) {
             device.createRfcommSocketToServiceRecord(UUID_ANDROID_DEVICE)
@@ -102,6 +105,12 @@ class DefaultBluetootKClientImpl(
     private fun requireConnected() {
         if (!state.isConnected()) {
             throw BluetooKDeviceIsNotConnected
+        }
+    }
+
+    private fun requireBluetoothEnabled() {
+        if (!BluetooKHelper().bluetoothAvailable()) {
+            throw BluetoothIsNotEnabled
         }
     }
 }
