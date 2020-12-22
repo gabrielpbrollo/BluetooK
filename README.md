@@ -1,5 +1,5 @@
 # BluetooK  
-Kotlin android bluetooth lib  
+Kotlin android bluetooth client/server lib 
   
 [![](https://jitpack.io/v/gabrielpbrollo/BluetooK.svg)](https://jitpack.io/#gabrielpbrollo/BluetooK)  
   
